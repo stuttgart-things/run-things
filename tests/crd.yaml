@@ -1,0 +1,30 @@
+apiVersion: github.stuttgart-things.com/v1
+kind: ServicePortal
+metadata:
+  name: portal-labul
+  namespace: werunthings
+spec:
+  services:
+    - name: ArgoCD
+      description: Declarative GitOps continuous delivery tool for Kubernetes
+      category: CI/CD
+      url: https://argocd.labul.sva.de
+      logoURL: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
+      tags:
+        - gitops
+        - kubernetes
+      healthCheck:
+        enabled: true
+        interval: 30
+        expectedStatus: 200
+        tlsCheck: true
+    - name: Grafana
+      description: Observability platform
+      category: Monitoring
+      url: https://grafana.labul.sva.de
+      logoURL: https://grafana.com/static/img/menu/grafana2x.png
+      healthCheck:
+        enabled: true
+        interval: 30
+        expectedStatus: 200
+        tlsCheck: true

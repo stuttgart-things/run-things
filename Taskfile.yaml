@@ -1,0 +1,137 @@
+---
+version: 3
+vars:
+  PROJECT_NAME:
+    sh: echo ${PWD##*/}
+  PROTO_DIR:
+    sh: find . -type f -name "*.proto" -exec dirname {} \; | sort | uniq
+  BRANCH:
+    sh: if [ $(git rev-parse --abbrev-ref HEAD) != "main" ]; then echo $(git rev-parse --abbrev-ref HEAD); else echo main ; fi
+  ORGA_NAME: stuttgart-things
+  MODULE: github.com/{{ .ORGA_NAME }}/{{ .PROJECT_NAME }}
+  DATE:
+    sh: date -Ih
+  GIT_COMMIT:
+    sh: git log -n 1 --format=%h
+  VERSION:
+    sh: |
+      [ "$(git branch --show-current)" != "main" ] && echo "dev-$(git describe --tags --abbrev=0 2>/dev/null || echo v0.1.0)" || echo $(git describe --tags --abbrev=0 2>/dev/null || echo v0.1.0)
+
+dotenv: ['.env', '{{.HOME}}/.env']
+
+tasks:
+  run-web:
+    desc: Run web UI with disk config (local dev)
+    vars:
+      CONFIG_LOCATION: '{{ .CONFIG_LOCATION | default "tests" }}'
+      CONFIG_NAME: '{{ .CONFIG_NAME | default "services.yaml" }}'
+      HTTP_PORT: '{{ .HTTP_PORT | default "8080" }}'
+    env:
+      LOAD_CONFIG_FROM: disk
+      CONFIG_LOCATION: "{{ .CONFIG_LOCATION }}"
+      CONFIG_NAME: "{{ .CONFIG_NAME }}"
+      HTTP_PORT: "{{ .HTTP_PORT }}"
+    cmds:
+      - go run .
+
+  build:
+    desc: Build and install
+    deps: [lint, test]
+    cmds:
+      - go mod tidy
+      - go install -ldflags="-X {{ .MODULE }}/internal.version={{ .VERSION }} -X {{ .MODULE }}/internal.date={{ .DATE }} -X {{ .MODULE }}/internal.commit={{ .GIT_COMMIT }}"
+
+  build-ko:
+    desc: Build image w/ KO
+    deps: [proto, lint, test]
+    env:
+      KO_DOCKER_REPO: ghcr.io/{{ .ORGA_NAME }}/{{ .PROJECT_NAME }}
+    cmds:
+      - |
+        BUILD_IMAGE=$(ko build {{ .MODULE }} --image-label org.opencontainers.image.source=https://github.com/stuttgart-things/weRunThings --push)
+        echo ${BUILD_IMAGE}
+        dagger call -m github.com/jpadams/daggerverse/trivy@v0.3.0 scan-image --image-ref ${BUILD_IMAGE}
+
+  proto:
+    desc: Generate Go code from proto
+    cmds:
+      - protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative {{ .PROTO_DIR }}/*.proto
+
+  lint:
+    desc: Lint Golang
+    cmds:
+      - cmd: golangci-lint run
+        ignore_error: true
+
+  test:
+    desc: Test code
+    cmds:
+      - go mod tidy
+      - cmd: go test ./... -v
+
+  check:
+    desc: Run pre-commit hooks
+    cmds:
+      - pre-commit run -a
+
+  commit:
+    desc: Commit + push code into branch
+    deps:
+      - check
+    cmds:
+      - git branch --set-upstream-to=origin/{{ .BRANCH }}
+      - git pull
+      - git status
+      - |
+        git add *
+        git status
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "Review the changes above."
+          gum confirm "Do you want to commit these changes?" || exit 0
+
+          echo "ENTER COMMIT MESSAGE"
+          COMMIT_MESSAGE=$(gum choose "CUSTOM MESSAGE" "feat: {{ .BRANCH }}" "fix: {{ .BRANCH }}" "BREAKING CHANGE: {{ .BRANCH }}")
+
+          if [ "$COMMIT_MESSAGE" == "CUSTOM MESSAGE" ]; then
+            CHANGED_FILES=$(git status --short | awk '{print $2}' | tr '\n' ' ')
+            COMMIT_MESSAGE=$(gum input --placeholder "Commit message" --value "Changed: $CHANGED_FILES")
+          fi
+
+          git commit --allow-empty -a -m "$COMMIT_MESSAGE"
+        else
+          echo "No changes to commit."
+        fi
+      - git push origin -u {{ .BRANCH }}
+
+  branch:
+    desc: Create branch from main
+    cmds:
+      - git checkout main
+      - git branch
+      - git pull
+      - |
+        echo "Enter to be created (remote) branch:"
+        read BRANCH_NAME;
+        git checkout -b ${BRANCH_NAME}
+        git push origin ${BRANCH_NAME}
+      - git branch
+      - git branch --set-upstream-to=origin/main ${BRANCH_NAME}
+
+  pr:
+    desc: Create pull request into main
+    deps: [lint]
+    cmds:
+      - |
+        PR_NUMBER=$(gh pr list | grep {{ .BRANCH }} | awk '{print $1}')
+        if [[ -n "${PR_NUMBER}" && "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "Closing PR #${PR_NUMBER}..."
+            gh pr close "${PR_NUMBER}"
+        else
+            echo "No matching PR found."
+        fi
+      - gh pr create -t "{{ .BRANCH }}" -b "{{ .BRANCH }} branch into main"
+      - sleep 20s
+      - gh pr checks $(gh pr list | grep "^[^#;]" | grep '{{ .BRANCH }}' | awk '{print $1}') --watch
+      - gh pr merge $(gh pr list | grep "^[^#;]" | grep '{{ .BRANCH }}' | awk '{print $1}') --auto --rebase --delete-branch
+      - git branch --set-upstream-to=origin/main
+      - git checkout main && git pull

@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+option go_package = "github.com/stuttgart-things/weRunThings/collectorservice";
+
+package collectorservice;
+
+service CollectorService {
+  rpc ReportInventory(InventoryReport) returns (Ack);
+  rpc Heartbeat(HeartbeatRequest) returns (Ack);
+}
+
+message Workload {
+  string name = 1;
+  string namespace = 2;
+  string kind = 3;
+  int32 replicas = 4;
+  int32 ready = 5;
+  repeated string images = 6;
+  map<string, string> labels = 7;
+  string creation_time = 8;
+}
+
+message ServiceInfo {
+  string name = 1;
+  string namespace = 2;
+  string type = 3;
+  string cluster_ip = 4;
+  repeated string ports = 5;
+  map<string, string> labels = 6;
+}
+
+message IngressInfo {
+  string name = 1;
+  string namespace = 2;
+  repeated string hosts = 3;
+  repeated string paths = 4;
+  map<string, string> labels = 5;
+}
+
+message InventoryReport {
+  string cluster_name = 1;
+  repeated Workload deployments = 2;
+  repeated Workload statefulsets = 3;
+  repeated Workload daemonsets = 4;
+  repeated ServiceInfo services = 5;
+  repeated IngressInfo ingresses = 6;
+}
+
+message HeartbeatRequest {
+  string cluster_name = 1;
+  string endpoint = 2;
+}
+
+message Ack {
+  bool success = 1;
+  string message = 2;
+}

@@ -1,0 +1,145 @@
+services:
+  - name: ArgoCD
+    description: Declarative GitOps continuous delivery tool for Kubernetes
+    category: CI/CD
+    url: https://argocd.example.com
+    logoURL: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
+    tags:
+      - gitops
+      - kubernetes
+      - deployment
+    healthCheck:
+      enabled: true
+      interval: 30
+      expectedStatus: 200
+      tlsCheck: true
+
+  - name: Tekton
+    description: Cloud-native CI/CD pipelines for Kubernetes
+    category: CI/CD
+    url: https://tekton.example.com
+    icon: "\U0001F6E0"
+    tags:
+      - ci
+      - pipelines
+    healthCheck:
+      enabled: true
+      interval: 30
+      expectedStatus: 200
+
+  - name: Grafana
+    description: Observability platform for metrics, logs, and traces
+    category: Monitoring
+    url: https://grafana.example.com
+    logoURL: https://grafana.com/static/img/menu/grafana2x.png
+    tags:
+      - monitoring
+      - dashboards
+      - observability
+    healthCheck:
+      enabled: true
+      interval: 30
+      expectedStatus: 200
+      tlsCheck: true
+
+  - name: Prometheus
+    description: Monitoring and alerting toolkit for cloud-native systems
+    category: Monitoring
+    url: https://prometheus.example.com
+    icon: "\U0001F525"
+    tags:
+      - monitoring
+      - alerting
+      - metrics
+    healthCheck:
+      enabled: true
+      interval: 30
+      expectedStatus: 200
+
+  - name: Vault
+    description: Secrets management and data protection platform
+    category: Security
+    url: https://vault.example.com
+    logoURL: https://www.datocms-assets.com/2885/1620155116-brandhcvaultverticalcolor.svg
+    tags:
+      - secrets
+      - security
+      - encryption
+    healthCheck:
+      enabled: true
+      interval: 60
+      expectedStatus: 200
+      expectedBody: "initialized"
+      tlsCheck: true
+
+  - name: Falco
+    description: Cloud-native runtime security and threat detection
+    category: Security
+    url: https://falco.example.com
+    icon: "\U0001F6E1"
+    tags:
+      - security
+      - runtime
+      - detection
+    healthCheck:
+      enabled: true
+      interval: 60
+      expectedStatus: 200
+
+  - name: Rancher
+    description: Multi-cluster Kubernetes management platform
+    category: Platform
+    url: https://rancher.example.com
+    logoURL: https://www.rancher.com/assets/img/logos/rancher-logo-stacked-color.svg
+    tags:
+      - kubernetes
+      - management
+      - multi-cluster
+    healthCheck:
+      enabled: true
+      interval: 30
+      expectedStatus: 200
+      tlsCheck: true
+
+  - name: Longhorn
+    description: Cloud-native distributed storage for Kubernetes
+    category: Platform
+    url: https://longhorn.example.com
+    icon: "\U0001F4BE"
+    tags:
+      - storage
+      - kubernetes
+      - volumes
+    healthCheck:
+      enabled: true
+      interval: 60
+      expectedStatus: 200
+
+  - name: Flux
+    description: GitOps toolkit for continuous delivery on Kubernetes
+    category: GitOps
+    url: https://flux.example.com
+    icon: "\U0001F504"
+    tags:
+      - gitops
+      - kubernetes
+      - reconciliation
+    healthCheck:
+      enabled: true
+      interval: 30
+      expectedStatus: 200
+
+  - name: Gitea
+    description: Lightweight self-hosted Git service
+    category: GitOps
+    url: https://gitea.example.com
+    logoURL: https://about.gitea.com/gitea.png
+    tags:
+      - git
+      - repository
+      - self-hosted
+    healthCheck:
+      enabled: true
+      interval: 30
+      expectedStatus: 200
+      tlsCheck: true
