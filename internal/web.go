@@ -563,24 +563,24 @@ const pageHead = `<!DOCTYPE html>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/sthings-argo.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 `
 
 const commonStyles = `
     <style>
         :root { --pico-font-size: 14px; }
         body { background: #100c18; }
-        .header-bar { background: rgba(22,16,36,0.8); color: #f8fafc; padding: 0.6rem 2rem; margin-bottom: 0; display: flex; justify-content: space-between; align-items: flex-end; position: sticky; top: 0; z-index: 100; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 1px 12px rgba(0,0,0,0.4), 0 0 40px rgba(120,80,255,0.06); transition: padding 0.3s ease, box-shadow 0.3s ease; }
+        .header-bar { background: rgba(22,16,36,0.8); color: #f8fafc; padding: 0.6rem 2rem; margin-bottom: 0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 1px 12px rgba(0,0,0,0.4), 0 0 40px rgba(120,80,255,0.06); transition: padding 0.3s ease, box-shadow 0.3s ease; }
         .header-bar::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(26,18,48,0.92) 0%, rgba(36,24,64,0.88) 50%, rgba(42,20,48,0.92) 100%); pointer-events: none; }
         .header-bar::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent 5%, rgba(240,160,48,0.25) 30%, rgba(200,56,56,0.15) 70%, transparent 95%); pointer-events: none; }
         .header-bar > * { position: relative; z-index: 1; }
-        .header-bar .header-left { display: flex; align-items: center; gap: 1.25rem; }
-        .header-bar .header-left img { height: 38px; border-radius: 8px; filter: drop-shadow(1px 1px 3px rgba(0,0,0,0.4)); transition: transform 0.3s ease, height 0.3s ease; transform: translateY(1px); }
+        .header-bar .header-left { display: flex; align-items: center; gap: 1.25rem; flex: 1; }
+        .header-bar .header-left img { height: 110px; border-radius: 8px; filter: drop-shadow(1px 1px 3px rgba(0,0,0,0.4)); transition: transform 0.3s ease, height 0.3s ease; transform: translateY(1px); }
         .header-bar .header-left img:hover { transform: translateY(1px) scale(1.08) rotate(-2deg); }
-        .header-bar .header-brand { display: flex; flex-direction: column; gap: 0.1rem; }
-        .header-bar h1 { margin: 0; font-family: 'Playfair Display', 'Georgia', serif; font-size: 1.25rem; font-weight: 700; color: #f8fafc; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1; transition: font-size 0.3s ease; }
-        .header-bar .subtitle { font-size: 0.62rem; color: rgba(248,250,252,0.6); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; padding-bottom: 0.15rem; transition: font-size 0.3s ease; }
-        .header-bar .nav-links { display: flex; gap: 0.2rem; align-items: center; padding-bottom: 0.1rem; }
+        .header-bar .header-brand { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; flex: 2; }
+        .header-bar h1 { margin: 0; font-family: 'Press Start 2P', monospace; font-size: 2.1rem; font-weight: 400; color: #f8fafc; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.2; transition: font-size 0.3s ease; text-shadow: 0 0 10px rgba(240,160,48,0.4), 0 0 20px rgba(240,160,48,0.15); }
+        .header-bar .subtitle { font-size: 0.9rem; color: rgba(248,250,252,0.6); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; padding-bottom: 0.15rem; transition: font-size 0.3s ease; }
+        .header-bar .nav-links { display: flex; gap: 0.2rem; align-items: flex-end; padding-bottom: 0; flex: 1; justify-content: flex-end; align-self: flex-end; }
         .header-bar .nav-links a { color: rgba(248,250,252,0.5); font-size: 0.8rem; font-weight: 500; text-decoration: none; padding: 0.35rem 0.85rem; border-radius: 6px; transition: all 0.2s ease; position: relative; }
         .header-bar .nav-links a:hover { color: #f8fafc; background: rgba(255,255,255,0.07); }
         .header-bar .nav-links a.active { color: #fff; background: rgba(240,160,48,0.12); font-weight: 600; text-shadow: 0 0 8px rgba(240,160,48,0.35); }
@@ -622,8 +622,8 @@ const commonStyles = `
         .btn-del { background: #f05050; color: white; }
         .btn-del:hover { background: #f06868; }
         .header-bar.scrolled { padding: 0.3rem 2rem; box-shadow: 0 1px 8px rgba(0,0,0,0.5), 0 0 30px rgba(120,80,255,0.04); }
-        .header-bar.scrolled .header-left img { height: 28px; }
-        .header-bar.scrolled h1 { font-size: 1rem; }
+        .header-bar.scrolled .header-left img { height: 60px; }
+        .header-bar.scrolled h1 { font-size: 0.75rem; }
         .header-bar.scrolled .subtitle { font-size: 0.5rem; }
         .container-fluid { padding-top: 0.75rem; }
     </style>
@@ -638,11 +638,11 @@ const commonStyles = `
 const headerBar = `
     <div class="header-bar">
         <div class="header-left">
-            <a href="/"><img src="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/sthings-cinema%20wide.png" alt="we run things"></a>
-            <div class="header-brand">
-                <h1>WE RUN THINGS</h1>
-                <div class="subtitle">Service Portal &amp; Health Monitor</div>
-            </div>
+            <a href="/"><img src="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/run-sthings2.png" alt="we run things"></a>
+        </div>
+        <div class="header-brand">
+            <h1>WE RUN THINGS</h1>
+            <div class="subtitle">Service Portal &amp; Health Monitor</div>
         </div>
         <div class="nav-links">
             <a href="/" {{.DashboardActive}}>Dashboard</a>
@@ -672,17 +672,17 @@ const dashboardTemplate = `<!DOCTYPE html>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/sthings-argo.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 ` + commonStyles + `
 </head>
 <body>
     <div class="header-bar">
         <div class="header-left">
-            <a href="/"><img src="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/sthings-cinema%20wide.png" alt="we run things"></a>
-            <div class="header-brand">
-                <h1>WE RUN THINGS</h1>
-                <div class="subtitle">Service Portal &amp; Health Monitor</div>
-            </div>
+            <a href="/"><img src="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/run-sthings2.png" alt="we run things"></a>
+        </div>
+        <div class="header-brand">
+            <h1>WE RUN THINGS</h1>
+            <div class="subtitle">Service Portal &amp; Health Monitor</div>
         </div>
         <div class="nav-links">
             <a href="/" class="active">Dashboard</a>
@@ -753,17 +753,17 @@ const serviceDetailTemplate = `<!DOCTYPE html>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/sthings-argo.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 ` + commonStyles + `
 </head>
 <body>
     <div class="header-bar">
         <div class="header-left">
-            <a href="/"><img src="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/sthings-cinema%20wide.png" alt="we run things"></a>
-            <div class="header-brand">
-                <h1>WE RUN THINGS</h1>
-                <div class="subtitle">Service Portal &amp; Health Monitor</div>
-            </div>
+            <a href="/"><img src="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/run-sthings2.png" alt="we run things"></a>
+        </div>
+        <div class="header-brand">
+            <h1>WE RUN THINGS</h1>
+            <div class="subtitle">Service Portal &amp; Health Monitor</div>
         </div>
         <div class="nav-links">
             <a href="/">Dashboard</a>
@@ -815,17 +815,17 @@ const clustersTemplate = `<!DOCTYPE html>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/sthings-argo.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 ` + commonStyles + `
 </head>
 <body>
     <div class="header-bar">
         <div class="header-left">
-            <a href="/"><img src="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/sthings-cinema%20wide.png" alt="we run things"></a>
-            <div class="header-brand">
-                <h1>WE RUN THINGS</h1>
-                <div class="subtitle">Service Portal &amp; Health Monitor</div>
-            </div>
+            <a href="/"><img src="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/run-sthings2.png" alt="we run things"></a>
+        </div>
+        <div class="header-brand">
+            <h1>WE RUN THINGS</h1>
+            <div class="subtitle">Service Portal &amp; Health Monitor</div>
         </div>
         <div class="nav-links">
             <a href="/">Dashboard</a>
@@ -866,17 +866,17 @@ const clusterDetailTemplate = `<!DOCTYPE html>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/sthings-argo.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 ` + commonStyles + `
 </head>
 <body>
     <div class="header-bar">
         <div class="header-left">
-            <a href="/"><img src="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/sthings-cinema%20wide.png" alt="we run things"></a>
-            <div class="header-brand">
-                <h1>WE RUN THINGS</h1>
-                <div class="subtitle">Service Portal &amp; Health Monitor</div>
-            </div>
+            <a href="/"><img src="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/run-sthings2.png" alt="we run things"></a>
+        </div>
+        <div class="header-brand">
+            <h1>WE RUN THINGS</h1>
+            <div class="subtitle">Service Portal &amp; Health Monitor</div>
         </div>
         <div class="nav-links">
             <a href="/">Dashboard</a>
@@ -977,17 +977,17 @@ const adminTemplate = `<!DOCTYPE html>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/sthings-argo.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 ` + commonStyles + `
 </head>
 <body>
     <div class="header-bar">
         <div class="header-left">
-            <a href="/"><img src="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/sthings-cinema%20wide.png" alt="we run things"></a>
-            <div class="header-brand">
-                <h1>WE RUN THINGS</h1>
-                <div class="subtitle">Service Portal &amp; Health Monitor</div>
-            </div>
+            <a href="/"><img src="https://raw.githubusercontent.com/stuttgart-things/docs/main/hugo/run-sthings2.png" alt="we run things"></a>
+        </div>
+        <div class="header-brand">
+            <h1>WE RUN THINGS</h1>
+            <div class="subtitle">Service Portal &amp; Health Monitor</div>
         </div>
         <div class="nav-links">
             <a href="/">Dashboard</a>
