@@ -291,6 +291,7 @@ func handleHTMXAddService(w http.ResponseWriter, r *http.Request, monitor *Monit
 		URL:         r.FormValue("url"),
 		LogoURL:     r.FormValue("logo_url"),
 		Icon:        r.FormValue("icon"),
+		Tags:        parseTags(r.FormValue("tags")),
 		HealthCheck: HealthCheckConfig{
 			Enabled:        r.FormValue("health_enabled") == "on",
 			Interval:       30,
@@ -324,6 +325,7 @@ func handleHTMXEditService(w http.ResponseWriter, r *http.Request, monitor *Moni
 		URL:         r.FormValue("url"),
 		LogoURL:     r.FormValue("logo_url"),
 		Icon:        r.FormValue("icon"),
+		Tags:        parseTags(r.FormValue("tags")),
 		HealthCheck: HealthCheckConfig{
 			Enabled:        r.FormValue("health_enabled") == "on",
 			Interval:       30,
@@ -337,6 +339,18 @@ func handleHTMXEditService(w http.ResponseWriter, r *http.Request, monitor *Moni
 
 	w.Header().Set("HX-Redirect", "/admin")
 	w.WriteHeader(http.StatusOK)
+}
+
+// parseTags splits a comma-separated string into trimmed, non-empty tags.
+func parseTags(raw string) []string {
+	var tags []string
+	for _, t := range strings.Split(raw, ",") {
+		t = strings.TrimSpace(t)
+		if t != "" {
+			tags = append(tags, t)
+		}
+	}
+	return tags
 }
 
 func handleHTMXDeleteService(w http.ResponseWriter, r *http.Request, monitor *Monitor, loadFrom, configLoc, configNm string) {
@@ -547,6 +561,9 @@ func templateFuncs() template.FuncMap {
 				return "#1a1a24"
 			}
 		},
+		"joinTags": func(tags []string) string {
+			return strings.Join(tags, ", ")
+		},
 	}
 }
 
@@ -621,6 +638,13 @@ const commonStyles = `
         .btn-add:hover { background: #f0b848; }
         .btn-del { background: #f05050; color: white; }
         .btn-del:hover { background: #f06868; }
+        .btn-edit { background: #4a6cf0; color: white; }
+        .btn-edit:hover { background: #5a7cf8; }
+        .btn-cancel { background: #3a3048; color: #a0a0b0; }
+        .btn-cancel:hover { background: #4a4060; }
+        .tag { display: inline-block; padding: 0.1rem 0.45rem; border-radius: 4px; font-size: 0.65rem; font-weight: 600; background: rgba(74,108,240,0.1); color: #6a8af0; margin-right: 0.25rem; }
+        .edit-row td { background: #1a1424 !important; }
+        .edit-row .edit-form { padding: 0.75rem 0; }
         .header-bar.scrolled { padding: 0.3rem 2rem; box-shadow: 0 1px 8px rgba(0,0,0,0.5), 0 0 30px rgba(120,80,255,0.04); }
         .header-bar.scrolled .header-left img { height: 60px; }
         .header-bar.scrolled h1 { font-size: 0.75rem; }
@@ -1008,6 +1032,7 @@ const adminTemplate = `<!DOCTYPE html>
                     <label>Category <input type="text" name="category"></label>
                     <label>Logo URL <input type="url" name="logo_url"></label>
                     <label>Icon (emoji) <input type="text" name="icon"></label>
+                    <label style="grid-column:1/-1;">Tags <input type="text" name="tags" placeholder="comma-separated, e.g. gitops, kubernetes, monitoring"></label>
                 </div>
                 <div style="display:flex;align-items:center;gap:1.5rem;margin-top:0.5rem;">
                     <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;cursor:pointer;">
@@ -1024,25 +1049,63 @@ const adminTemplate = `<!DOCTYPE html>
         <h3>Existing Services ({{len .Services}})</h3>
         <table>
             <thead>
-                <tr><th>Name</th><th>Category</th><th>URL</th><th>Health Check</th><th>Actions</th></tr>
+                <tr><th>Name</th><th>Category</th><th>URL</th><th>Tags</th><th>Health</th><th>Actions</th></tr>
             </thead>
             <tbody>
                 {{range .Services}}
-                <tr>
+                <tr id="row-{{.Name}}">
                     <td style="font-weight:600;">{{.Name}}</td>
                     <td><span class="badge" style="background:rgba(240,160,48,0.08);color:#8a7a60;">{{.Category}}</span></td>
                     <td style="font-size:0.8rem;"><a href="{{.URL}}" target="_blank" style="color:#c8a040;">{{.URL}}</a></td>
-                    <td>{{if .HealthCheck.Enabled}}<span style="color:#44dd88;font-weight:bold;">Enabled</span>{{else}}<span style="color:#4a4060;">Disabled</span>{{end}}</td>
-                    <td>
+                    <td>{{range .Tags}}<span class="tag">{{.}}</span>{{end}}</td>
+                    <td>{{if .HealthCheck.Enabled}}<span style="color:#44dd88;font-weight:bold;">On</span>{{else}}<span style="color:#4a4060;">Off</span>{{end}}</td>
+                    <td style="white-space:nowrap;">
+                        <button class="btn-action btn-edit" onclick="toggleEdit('{{.Name}}')">Edit</button>
                         <form hx-post="/htmx/delete-service" hx-swap="none" hx-confirm="Delete {{.Name}}?" style="display:inline;">
                             <input type="hidden" name="name" value="{{.Name}}">
                             <button type="submit" class="btn-action btn-del">Delete</button>
                         </form>
                     </td>
                 </tr>
+                <tr id="edit-{{.Name}}" class="edit-row" style="display:none;">
+                    <td colspan="6">
+                        <form hx-post="/htmx/edit-service" hx-swap="none" class="edit-form">
+                            <input type="hidden" name="name" value="{{.Name}}">
+                            <div class="grid" style="grid-template-columns:1fr 1fr 1fr;">
+                                <label>URL * <input type="url" name="url" value="{{.URL}}" required></label>
+                                <label>Description <input type="text" name="description" value="{{.Description}}"></label>
+                                <label>Category <input type="text" name="category" value="{{.Category}}"></label>
+                                <label>Logo URL <input type="url" name="logo_url" value="{{.LogoURL}}"></label>
+                                <label>Icon (emoji) <input type="text" name="icon" value="{{.Icon}}"></label>
+                                <label>Tags <input type="text" name="tags" value="{{joinTags .Tags}}"></label>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:1.5rem;margin-top:0.5rem;">
+                                <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;cursor:pointer;">
+                                    <input type="checkbox" name="health_enabled" {{if .HealthCheck.Enabled}}checked{{end}}> Health Check
+                                </label>
+                                <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;cursor:pointer;">
+                                    <input type="checkbox" name="tls_check" {{if .HealthCheck.TLSCheck}}checked{{end}}> TLS Check
+                                </label>
+                                <button type="submit" class="btn-action btn-add">Save</button>
+                                <button type="button" class="btn-action btn-cancel" onclick="toggleEdit('{{.Name}}')">Cancel</button>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
                 {{end}}
             </tbody>
         </table>
+        <script>
+        function toggleEdit(name) {
+            var editRow = document.getElementById('edit-' + name);
+            if (editRow.style.display === 'none') {
+                document.querySelectorAll('.edit-row').forEach(function(r) { r.style.display = 'none'; });
+                editRow.style.display = 'table-row';
+            } else {
+                editRow.style.display = 'none';
+            }
+        }
+        </script>
     </main>
 </body>
 </html>`
