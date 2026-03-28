@@ -1,0 +1,44 @@
+---
+site_name: run-things
+site_description: Service portal & health monitor for infrastructure services
+site_url: https://stuttgart-things.github.io/run-things/
+repo_url: https://github.com/stuttgart-things/run-things
+repo_name: stuttgart-things/run-things
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: deep orange
+    accent: amber
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+    - search.highlight
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+
+nav:
+  - Home: index.md
+  - Usage:
+      - REST API: api.md
+      - Web UI: webui.md
+  - Configuration:
+      - Environment Variables: configuration.md
+      - KCL Deployment: deployment.md
+  - Contributing: contributing.md

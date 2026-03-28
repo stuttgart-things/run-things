@@ -1,0 +1,29 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: run-things
+  title: run-things
+  description: Service portal & health monitor for infrastructure services
+  annotations:
+    github.com/project-slug: stuttgart-things/run-things
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - go
+    - kubernetes
+    - health-monitoring
+    - service-portal
+    - htmx
+    - platform-engineering
+  links:
+    - url: https://stuttgart-things.github.io/run-things/
+      title: Documentation
+      icon: docs
+    - url: https://github.com/stuttgart-things/run-things/releases
+      title: Releases
+      icon: github
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/stuttgart-things
+  system: platform-engineering
