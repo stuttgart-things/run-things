@@ -8,3 +8,8 @@ builds:
       - -s -w -X github.com/stuttgart-things/run-things/internal.version={{.Env.VERSION}}
       - -s -w -X github.com/stuttgart-things/run-things/internal.date={{.Env.BUILD_DATE}}
       - -s -w -X github.com/stuttgart-things/run-things/internal.commit={{.Env.COMMIT}}
+  - id: collector-agent
+    dir: .
+    main: ./cmd/collector-agent
+    ldflags:
+      - -s -w
