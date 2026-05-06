@@ -21,8 +21,8 @@ schema CollectorAgent:
     memoryRequest: str = "32Mi"
     memoryLimit: str = "128Mi"
 
-    # Connection to run-things server
-    serverURL: str = "http://run-things.run-things.svc.cluster.local:8080"
+    # Connection to run-things server (collector ingest port)
+    serverURL: str = "http://run-things.run-things.svc.cluster.local:50051"
     clusterEndpoint: str = ""
 
     # Reporting cadence (Go duration strings, e.g. "60s", "5m")

@@ -6,18 +6,16 @@ package main
 
 import (
 	"log"
-	"net"
+	"net/http"
 	"os"
 
 	"github.com/pterm/pterm"
 	"github.com/stuttgart-things/run-things/internal"
-
-	"google.golang.org/grpc"
 )
 
 const (
-	defaultGRPCPort = ":50051"
-	defaultHTTPPort = "8080"
+	defaultCollectorPort = "50051"
+	defaultHTTPPort      = "8080"
 )
 
 var (
@@ -44,9 +42,7 @@ func main() {
 	}
 
 	if serverPort == "" {
-		serverPort = defaultGRPCPort
-	} else {
-		serverPort = ":" + serverPort
+		serverPort = defaultCollectorPort
 	}
 
 	if httpPort == "" {
@@ -64,21 +60,14 @@ func main() {
 	logger.Info("CONFIG LOCATION", logger.Args("", configLocation))
 	logger.Info("CONFIG NAME", logger.Args("", configName))
 
-	// START HTTP/HTMX SERVER IN BACKGROUND
+	// START HTTP/HTMX SERVER IN BACKGROUND (dashboard + REST API on httpPort)
 	go internal.StartWebServer(httpPort, monitor, clusterStore, loadConfigFrom, configLocation, configName)
 
-	// START GRPC SERVER
-	lis, err := net.Listen("tcp", serverPort)
-	if err != nil {
-		log.Fatalf("FAILED TO LISTEN: %v", err)
-	}
-
-	s := grpc.NewServer()
-	// TODO: Register CollectorService when proto is compiled
-	// collectorservice.RegisterCollectorServiceServer(s, &collectorServer{store: clusterStore})
-
-	log.Printf("GRPC SERVER LISTENING AT %v", lis.Addr())
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("FAILED TO SERVE: %v", err)
+	// START COLLECTOR INGEST SERVER (cluster agents POST inventory + heartbeats here)
+	collectorMux := http.NewServeMux()
+	internal.RegisterCollectorRoutes(collectorMux, clusterStore)
+	log.Printf("COLLECTOR INGEST SERVER LISTENING AT :%s", serverPort)
+	if err := http.ListenAndServe(":"+serverPort, collectorMux); err != nil {
+		log.Fatalf("FAILED TO SERVE COLLECTOR INGEST: %v", err)
 	}
 }

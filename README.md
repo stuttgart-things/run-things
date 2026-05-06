@@ -9,7 +9,7 @@ Service portal & health monitor for infrastructure services. Provides a real-tim
 - HTMX-powered dashboard with dark theme
 - HTTP health checks with configurable intervals, expected status codes, and body matching
 - TLS certificate expiry monitoring
-- Kubernetes cluster inventory via gRPC collectors
+- Kubernetes cluster inventory via distributed collector agents
 - REST API for service management
 - Dual config source: YAML files or Kubernetes CRDs
 - Admin panel for adding/editing/deleting services
@@ -36,7 +36,8 @@ Open [http://localhost:8080](http://localhost:8080)
 | `CONFIG_LOCATION` | `tests` | Directory path for disk mode, namespace for CRD mode |
 | `CONFIG_NAME` | `services.yaml` | YAML filename or CRD resource name |
 | `HTTP_PORT` | `8080` | Web UI / REST API port |
-| `SERVER_PORT` | `50051` | gRPC server port |
+| `SERVER_PORT` | `50051` | Collector ingest port — cluster agents POST inventory / heartbeats here |
+| `COLLECTOR_TOKEN` | (empty) | Optional bearer token required from collector agents |
 | `KUBECONFIG` | (K8s default) | Kubernetes config path (required for `cr` mode) |
 
 ### Service Definition (YAML)
@@ -135,6 +136,13 @@ spec:
 | `GET` | `/api/v1/clusters` | List cluster inventory |
 | `GET` | `/api/v1/health` | Health probe |
 
+### Collector Ingest API (separate listener on `SERVER_PORT`, default `:50051`)
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/collector/inventory` | Full cluster inventory snapshot from a collector agent |
+| `POST` | `/api/v1/collector/heartbeat` | Lightweight liveness ping from a collector agent |
+
 ### Web UI Routes
 
 | Path | Description |
@@ -143,6 +151,68 @@ spec:
 | `/service/{name}` | Service detail page |
 | `/clusters` | Cluster inventory |
 | `/admin` | Admin panel |
+
+## Cluster Collector Agent
+
+The `cmd/collector-agent` binary is a small daemon meant to run inside every
+Kubernetes cluster you want to track. It periodically discovers workloads
+(Deployments, StatefulSets, DaemonSets, Services, Ingresses) using the cluster
+API and pushes a full snapshot to the central run-things server. Between full
+snapshots it sends a lightweight heartbeat so the server can mark the cluster
+as alive.
+
+```
++-------------------+       POST /api/v1/collector/inventory
+|  collector-agent  | ----------------------------------------> +-----------+
+|  (Pod, ClusterRO) |       POST /api/v1/collector/heartbeat    | run-things|
++-------------------+ ----------------------------------------> +-----------+
+        ^                                                            |
+        |                                                            v
+   list deploys,                                                  /clusters
+   sts, ds, svc, ing                                              dashboard
+```
+
+### Configuration (env vars)
+
+| Variable | Default | Description |
+|---|---|---|
+| `CLUSTER_NAME` | _(required)_ | Logical cluster identifier shown in the dashboard |
+| `SERVER_URL` | _(required)_ | Base URL of the run-things collector ingest port (e.g. `http://run-things.run-things.svc.cluster.local:50051`) |
+| `COLLECTOR_TOKEN` | _(empty)_ | Bearer token shared with the server. Empty disables auth |
+| `CLUSTER_ENDPOINT` | _(empty)_ | Optional human-readable endpoint shown alongside the heartbeat |
+| `REPORT_INTERVAL` | `60s` | How often a full inventory snapshot is sent |
+| `HEARTBEAT_INTERVAL` | `30s` | How often a heartbeat ping is sent |
+| `HTTP_TIMEOUT` | `15s` | Timeout per HTTP request to the server |
+| `NAMESPACES` | _(empty = all)_ | Comma-separated namespace allow list |
+| `KUBECONFIG` | _(in-cluster)_ | Path used outside a Pod; in-cluster config is tried first |
+
+### Run locally
+
+```bash
+task run-collector \
+  CLUSTER_NAME=labul \
+  SERVER_URL=http://localhost:50051 \
+  REPORT_INTERVAL=30s
+```
+
+### Build container image
+
+```bash
+task build-collector-ko
+```
+
+### Deploy to a cluster
+
+KCL manifests live in `kcl/collector-agent/` and emit a Namespace,
+ServiceAccount, ClusterRole + ClusterRoleBinding (read-only on workloads), and
+the Deployment.
+
+```bash
+kcl run kcl/collector-agent \
+  -D config.clusterName=labul \
+  -D config.serverURL=https://run-things.example.com:50051 \
+  -D config.image=ghcr.io/stuttgart-things/run-things-collector-agent:v0.1.0
+```
 
 ## Build
 
