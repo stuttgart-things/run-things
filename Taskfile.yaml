@@ -52,6 +52,29 @@ tasks:
         echo ${BUILD_IMAGE}
         dagger call -m github.com/jpadams/daggerverse/trivy@v0.3.0 scan-image --image-ref ${BUILD_IMAGE}
 
+  build-collector-ko:
+    desc: Build collector-agent image w/ KO
+    deps: [lint, test]
+    env:
+      KO_DOCKER_REPO: ghcr.io/{{ .ORGA_NAME }}/run-things-collector-agent
+    cmds:
+      - |
+        BUILD_IMAGE=$(ko build {{ .MODULE }}/cmd/collector-agent --image-label org.opencontainers.image.source=https://github.com/stuttgart-things/run-things --push)
+        echo ${BUILD_IMAGE}
+
+  run-collector:
+    desc: Run the collector-agent locally against the current kube-context
+    vars:
+      CLUSTER_NAME: '{{ .CLUSTER_NAME | default "local" }}'
+      SERVER_URL: '{{ .SERVER_URL | default "http://localhost:8080" }}'
+      REPORT_INTERVAL: '{{ .REPORT_INTERVAL | default "30s" }}'
+    env:
+      CLUSTER_NAME: "{{ .CLUSTER_NAME }}"
+      SERVER_URL: "{{ .SERVER_URL }}"
+      REPORT_INTERVAL: "{{ .REPORT_INTERVAL }}"
+    cmds:
+      - go run ./cmd/collector-agent
+
   proto:
     desc: Generate Go code from proto
     cmds:
